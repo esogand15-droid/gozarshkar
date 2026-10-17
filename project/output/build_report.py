@@ -120,8 +120,11 @@ def draw_str_center(c, text, cx, y, font, size, color=None):
 # ------------------------------------------------------------------ بلوک‌ها
 def section_title(c, x_right, y, text, width=CW):
     h = 15.0
+    # راست‌چین: نوار تزئینی باید در لبهٔ راستِ کادر و در آغازِ تیتر (سمت شروع
+    # خوانش) قرار گیرد، نه در لبهٔ چپ. پهنای نوار ۳/۲ pt است و لبهٔ راستِ آن
+    # با x_right منطبق می‌شود؛ متن با ۵/۸ pt فاصله از نوار آغاز می‌گردد.
     c.setFillColor(GOLD)
-    c.rect(x_right - width, y - 9.0, 3.2, 11.5, stroke=0, fill=1)
+    c.rect(x_right - 3.2, y - 9.0, 3.2, 11.5, stroke=0, fill=1)
     draw_str(c, text, x_right - 9.0, y - 7.0, "VB", 9.6, NAVY)
     return y - h - 7.0
 
@@ -243,11 +246,12 @@ def note_box(c, x_right, y, text, width=CW, size=7.8, pad=7.0):
     h = len(lines) * lh + 2 * pad
     c.setFillColor(LIGHT)
     c.rect(x_right - width, y - h, width, h, stroke=0, fill=1)
+    # نوار تزئینی کادر یادداشت نیز باید در لبهٔ راست باشد (راست‌چین)
     c.setFillColor(GOLD)
-    c.rect(x_right - width, y - h, 3.2, h, stroke=0, fill=1)
+    c.rect(x_right - 3.2, y - h, 3.2, h, stroke=0, fill=1)
     yy = y - pad - lh * 0.76
     for ln in lines:
-        draw_str(c, ln, x_right - pad, yy, "VR", size, HexColor("#2B3A47"))
+        draw_str(c, ln, x_right - pad - 3.2, yy, "VR", size, HexColor("#2B3A47"))
         yy -= lh
     return y - h
 
