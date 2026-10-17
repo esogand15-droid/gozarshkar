@@ -200,7 +200,7 @@ def table(c, x_right, y, widths, header, rows, size=7.4, padx=4.0, pady=3.2,
             if i in status_cols:
                 key = str(cell)
                 if key in C.STATUS_LABEL:
-                    label = C.STATUS_SHORT[key]
+                    label = C.STATUS_PILL[key]
                     fs = size - 0.4
                     bw = min(widths[i] - 2 * padx, W(label, "VB", fs) + 11.0)
                     bx = cx + (widths[i] - bw) / 2.0
