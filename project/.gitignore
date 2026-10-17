@@ -1,0 +1,10 @@
+# فایل‌های حجیمِ میانجی — از آرشیو استخراج می‌شوند و در مخزن ثبت نمی‌شوند
+project/source/extracted/
+project/processing/normalized_images/
+project/processing/ocr/raw/*.json.tmp
+
+# خروجی‌های موقت
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
