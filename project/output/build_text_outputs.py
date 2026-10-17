@@ -80,8 +80,6 @@ def build_md():
             L.append("")
             L += md_table(C.COST_HEADER, C.COST)
             L.append("")
-            L.append("> " + C.COST_NOTE)
-            L.append("")
         elif i == 3:
             L.append("### قرارداد خرید خدمات سپتیک و فاضلاب")
             L.append("")
@@ -219,7 +217,6 @@ def build_docx():
     add_table(doc, C.STANDARDS_HEADER, C.STANDARDS, 8)
     add_par(doc, "اقدامات کنترل مصرف و پیشگیری از هزینه اضافی", 11, True, STEEL)
     add_table(doc, C.COST_HEADER, C.COST, 8)
-    add_par(doc, C.COST_NOTE, 9, False, DARK)
 
     add_par(doc, C.PAGE_TITLES[3], 12.5, True, NAVY)
     add_par(doc, "قرارداد خرید خدمات سپتیک و فاضلاب", 11, True, STEEL)

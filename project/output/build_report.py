@@ -387,8 +387,6 @@ def page2(c):
     y = table(c, PW - MX, y, C.COST_WIDTHS, C.COST_HEADER, C.COST,
               size=7.2, padx=3.4, pady=1.9, leading=8.6, hdr_size=7.2,
               center_cols=(2,))
-    y -= 5
-    y = note_box(c, PW - MX, y, C.COST_NOTE, size=7.0, pad=5.5)
     REPORT.append(("صفحه ۲", y))
     return y
 
