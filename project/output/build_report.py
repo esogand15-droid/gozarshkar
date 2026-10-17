@@ -5,6 +5,7 @@
     python3 build_report.py            # ساخت PDF
     python3 build_report.py --draft    # گزارش اندازه‌گیری و فضای باقی‌مانده هر صفحه
 """
+import json
 import os
 import sys
 
@@ -48,6 +49,7 @@ CW = PW - 2 * MX
 
 DRAFT = "--draft" in sys.argv
 REPORT = []
+TABLE_GEOM = []   # هندسهٔ جدول‌ها برای بازبینیِ خودکار (مرزهای واقعی ستون‌ها)
 
 
 def fa_num(n):
@@ -162,6 +164,19 @@ def table(c, x_right, y, widths, header, rows, size=7.4, padx=4.0, pady=3.2,
         return hh + sum(heights)
 
     x0 = x_right - total
+    # مرزهای مجازِ خطوط عمودی: لبه‌های بیرونیِ جدول + جداکننده‌های ستون‌ها
+    bounds = [x0]
+    vx = x_right
+    for i in range(len(widths) - 1):
+        vx -= widths[i]
+        bounds.append(vx)
+    bounds.append(x_right)
+    TABLE_GEOM.append({
+        "page": c.getPageNumber(),
+        "bounds": [round(b, 2) for b in sorted(bounds)],
+        "top": round(y, 2),
+        "bottom": round(y - hh - sum(heights), 2),
+    })
     # سرستون
     c.setFillColor(NAVY)
     c.rect(x0, y - hh, total, hh, stroke=0, fill=1)
@@ -205,11 +220,14 @@ def table(c, x_right, y, widths, header, rows, size=7.4, padx=4.0, pady=3.2,
                     draw_str(c, ln, cx + widths[i] - padx, base - k * leading,
                              body_font, size, HexColor("#22303C"))
         # خطوط افقی و عمودی
+        # widths به ترتیبِ راست‌به‌چپ است: widths[0] ستونِ اول (راست‌ترین).
+        # بنابراین جداکننده‌های عمودی باید با کسرِ پهنای ستون‌ها از راست به چپ
+        # و به همان ترتیبِ آرایه (0، 1، 2، ...) به دست آیند.
         c.setStrokeColor(LINE)
         c.setLineWidth(0.4)
         c.line(x0, y - rh, x0 + total, y - rh)
         vx = x_right
-        for i in range(len(widths) - 1, 0, -1):
+        for i in range(len(widths) - 1):
             vx -= widths[i]
             c.line(vx, y, vx, y - rh)
         y -= rh
@@ -434,6 +452,9 @@ def main():
         fn(c)
         c.showPage()
     c.save()
+
+    with open(OUT + ".tables.json", "w", encoding="utf-8") as fh:
+        json.dump(TABLE_GEOM, fh, ensure_ascii=False, indent=1)
 
     print("PDF ساخته شد: " + OUT)
     for name, y in REPORT:

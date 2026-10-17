@@ -11,8 +11,11 @@ import unicodedata
 import numpy
 import pymupdf
 
+import json
 HERE = os.path.dirname(os.path.abspath(__file__))
 PDF = os.path.join(HERE, "final_consultant_report.pdf")
+TABLES = json.load(open(PDF + ".tables.json", encoding="utf-8")) \
+    if os.path.exists(PDF + ".tables.json") else []
 
 MX = 40.0
 PW, PH = 595.276, 841.89
@@ -148,6 +151,30 @@ def main():
             if ink > 400:
                 problems.append("صفحه {}: {} پیکسلِ جوهر در حاشیهٔ کناری (نشت به بیرون از ستون‌ها)".format(
                     pno + 1, ink))
+
+        # ۷) هر خط عمودیِ داخلِ یک جدول باید دقیقاً روی مرزِ واقعی ستون‌ها باشد
+        #    (جلوگیری از تکرارِ خطوط مزاحم درون سلولِ توضیحات)
+        geom = [g for g in TABLES if g["page"] == pno + 1]
+        v_in = h_in = 0
+        for d in page.get_drawings():
+            r = d["rect"]
+            if r.height > 3 and r.width < 1.5:          # خط عمودی
+                x, y0, y1 = r.x0, PH - r.y1, PH - r.y0
+                owner = [g for g in geom
+                         if y0 >= g["bottom"] - 0.8 and y1 <= g["top"] + 0.8]
+                if not owner:
+                    continue
+                v_in += 1
+                if not any(min(abs(x - b) for b in g["bounds"]) <= 0.6 for g in owner):
+                    problems.append(
+                        "صفحه {} خط عمودی مزاحم درون سلول: x={:.2f} (مرزهای مجاز: {})".format(
+                            pno + 1, x, "، ".join("%.2f" % b for b in owner[0]["bounds"])))
+            elif r.width > 20 and r.height < 1.5:       # خط افقی جداکنندهٔ ردیف
+                h_in += 1
+        if v_in == 0 and geom:
+            problems.append("صفحه {}: جدول فاقد خطوط عمودیِ جداکنندهٔ ستون است".format(pno + 1))
+        if h_in == 0 and geom:
+            problems.append("صفحه {}: جدول فاقد خطوط افقیِ جداکنندهٔ ردیف است".format(pno + 1))
 
     text = "\n".join(full)
     # بررسیِ واژگانیِ مقاوم در برابر بازآراییِ دوجهته (همهٔ واژه‌های هر گروه باید حاضر باشند)
