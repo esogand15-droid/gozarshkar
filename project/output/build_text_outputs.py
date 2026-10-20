@@ -114,6 +114,10 @@ def build_md():
             for v, k in C.CARDS_P4:
                 L.append("- **{}** — {}".format(v, k))
             L.append("")
+            L.append("### خلاصهٔ عملکرد به تفکیک حوزهٔ فعالیت")
+            L.append("")
+            L += md_table(C.PERF_HEADER, C.PERF)
+            L.append("")
             L.append("### دستاوردهای شاخص دوره")
             L.append("")
             for it in C.ACHIEVEMENTS_SHORT:
@@ -123,10 +127,6 @@ def build_md():
             L.append("")
             for it in C.PRIORITIES:
                 L.append("- " + it)
-            L.append("")
-            L.append("### محدودیت داده و مبنای گزارش")
-            L.append("")
-            L.append(C.DATA_NOTE)
             L.append("")
             L.append("### جمع‌بندی نهایی")
             L.append("")
@@ -259,6 +259,8 @@ def build_docx():
     add_par(doc, "شاخص‌های کلیدی", 11, True, STEEL)
     add_table(doc, ["شاخص", "مقدار"],
               [[k, v] for v, k in C.CARDS_P4], 9)
+    add_par(doc, "خلاصهٔ عملکرد به تفکیک حوزهٔ فعالیت", 11, True, STEEL)
+    add_table(doc, C.PERF_HEADER, C.PERF, 8.5)
     add_par(doc, "دستاوردهای شاخص دوره", 11, True, STEEL)
     for it in C.ACHIEVEMENTS_SHORT:
         p = doc.add_paragraph(it, style="List Bullet")
@@ -275,8 +277,6 @@ def build_docx():
             r.font.name = "Vazirmatn"
             r.font.size = Pt(9.5)
             r._element.rPr.rFonts.set(qn("w:cs"), "Vazirmatn")
-    add_par(doc, "محدودیت داده و مبنای گزارش", 11, True, STEEL)
-    add_par(doc, C.DATA_NOTE, 9)
     add_par(doc, "جمع‌بندی نهایی", 11, True, STEEL)
     add_par(doc, C.CLOSING, 10)
 

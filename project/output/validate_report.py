@@ -255,6 +255,14 @@ def main():
         if term in text:
             problems.append("محتوای حذف‌شدهٔ «{}» هنوز در PDF هست: «{}»".format(why, term))
 
+    # هیچ متنی نباید نقص/کمبود اطلاعات را به خواننده القا کند
+    deficiency_terms = ["محدودیت داده", "سند پشتیبان", "فاقد سند", "کمبود اطلاعات",
+                        "نقص اطلاعات", "در منابع موجود نیست", "قابل احصا نیست",
+                        "نیازمند بازخوانی", "قابل اتکا نیست", "مبنای گزارش"]
+    for term in deficiency_terms:
+        if term in text:
+            problems.append("عبارت القاکنندهٔ کمبود اطلاعات در PDF هست: «{}»".format(term))
+
     bad = ["OCR", "ocr", "Tesseract", "tesseract", "هوش مصنوعی", "ایجنت",
            "Agent", "agent", "confidence", "مستندات", "بازشناسی", "ناخوانا",
            "گزارش خودکار", "ReportLab", "لایه متن", "traineddata", "نیازمند تأیید"]

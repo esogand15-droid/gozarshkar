@@ -438,28 +438,29 @@ def page4(c):
     y = page_frame(c, 4, title="بخش چهار — چکیده مدیریتی و جمع‌بندی نهایی عملکرد")
     y = para(c, PW - MX, y, C.SUMMARY_TEXT, size=9.2, leading=14.7)
     y -= 10
-    y = cards(c, PW - MX, y, C.CARDS_P4, h=54.0, vsize=13.0, lsize=7.0,
+    y = cards(c, PW - MX, y, C.CARDS_P4, h=47.0, vsize=12.6, lsize=6.9,
               ncols=len(C.CARDS_P4))
-    y -= 12
-    y = section_title(c, PW - MX, y, "دستاوردهای شاخص دوره")
-    y = bullets(c, PW - MX, y, C.ACHIEVEMENTS_SHORT, size=8.7, lh=13.9)
+    y -= 8
+    y = section_title(c, PW - MX, y, "خلاصهٔ عملکرد به تفکیک حوزهٔ فعالیت")
+    y = table(c, PW - MX, y, C.PERF_WIDTHS, C.PERF_HEADER, C.PERF,
+              size=7.4, padx=3.5, pady=2.5, leading=9.2, hdr_size=7.4)
     y -= 7
+    y = section_title(c, PW - MX, y, "دستاوردهای شاخص دوره")
+    y = bullets(c, PW - MX, y, C.ACHIEVEMENTS_SHORT, size=8.6, lh=13.0)
+    y -= 5
     y = section_title(c, PW - MX, y, "اولویت‌های آتی")
-    y = bullets(c, PW - MX, y, C.PRIORITIES, size=8.7, lh=13.9)
-    y -= 8
-    y = section_title(c, PW - MX, y, "محدودیت داده و مبنای گزارش")
-    y = note_box(c, PW - MX, y, C.DATA_NOTE, size=7.8, pad=6.8)
-    y -= 8
+    y = bullets(c, PW - MX, y, C.PRIORITIES, size=8.6, lh=13.0)
+    y -= 6
     y = section_title(c, PW - MX, y, "جمع‌بندی نهایی")
-    y = para(c, PW - MX, y, C.CLOSING, size=8.9, leading=13.8)
-    y -= 8
+    y = para(c, PW - MX, y, C.CLOSING, size=8.8, leading=13.4)
+    y -= 7
     y = section_title(c, PW - MX, y, "پیوست تصویری گزارش (صفحه‌های ۵ تا ۷)")
     y = appendix_index(c, PW - MX, y)
     REPORT.append(("صفحه ۴", y))
     return y
 
 
-def appendix_index(c, x_right, y, h=62.0, gap=8.0):
+def appendix_index(c, x_right, y, h=56.0, gap=8.0):
     """سه کارت فهرست پیوست: عنوان، تعداد تصویر و بازهٔ تاریخ ثبت."""
     counts = P.counts()
     ncols = len(P.CATEGORIES)
