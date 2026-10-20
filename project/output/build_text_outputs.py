@@ -87,12 +87,6 @@ def build_md():
             L += md_table(C.COST_HEADER, C.COST)
             L.append("")
         elif i == 3:
-            L.append("### قرارداد خرید خدمات سپتیک و فاضلاب")
-            L.append("")
-            L += md_table(C.CONTRACT_HEADER, C.CONTRACT)
-            L.append("")
-            L.append("> " + C.CONTRACT_NOTE)
-            L.append("")
             L.append("### اقدامات تعمیراتی و تجهیزاتی")
             L.append("")
             L += md_table(C.REPAIRS_HEADER,
@@ -112,10 +106,6 @@ def build_md():
             for n, it in enumerate(C.ACHIEVEMENTS, 1):
                 L.append("{}. {}".format(n, it))
             L.append("")
-            L.append("### الزامات ایمنی، بهداشت و محیط زیست ابلاغی به پیمانکار")
-            L.append("")
-            L.append(C.HSE_NOTE)
-            L.append("")
         else:
             L.append(C.SUMMARY_TEXT.replace("\n\n", "\n\n"))
             L.append("")
@@ -133,6 +123,10 @@ def build_md():
             L.append("")
             for it in C.PRIORITIES:
                 L.append("- " + it)
+            L.append("")
+            L.append("### محدودیت داده و مبنای گزارش")
+            L.append("")
+            L.append(C.DATA_NOTE)
             L.append("")
             L.append("### جمع‌بندی نهایی")
             L.append("")
@@ -242,9 +236,6 @@ def build_docx():
     add_table(doc, C.COST_HEADER, C.COST, 8)
 
     add_par(doc, C.PAGE_TITLES[3], 12.5, True, NAVY)
-    add_par(doc, "قرارداد خرید خدمات سپتیک و فاضلاب", 11, True, STEEL)
-    add_table(doc, C.CONTRACT_HEADER, C.CONTRACT, 8)
-    add_par(doc, C.CONTRACT_NOTE, 9, False, DARK)
     add_par(doc, "اقدامات تعمیراتی و تجهیزاتی", 11, True, STEEL)
     add_table(doc, C.REPAIRS_HEADER,
               [r[:3] + [C.STATUS_LABEL.get(r[3], r[3])] for r in C.REPAIRS], 8.5)
@@ -262,9 +253,6 @@ def build_docx():
             r.font.name = "Vazirmatn"
             r.font.size = Pt(9)
             r._element.rPr.rFonts.set(qn("w:cs"), "Vazirmatn")
-    add_par(doc, "الزامات ایمنی، بهداشت و محیط زیست ابلاغی به پیمانکار", 11, True, STEEL)
-    add_par(doc, C.HSE_NOTE, 9)
-
     add_par(doc, C.PAGE_TITLES[4], 12.5, True, NAVY)
     for blk in C.SUMMARY_TEXT.split("\n\n"):
         add_par(doc, blk, 10)
@@ -287,6 +275,8 @@ def build_docx():
             r.font.name = "Vazirmatn"
             r.font.size = Pt(9.5)
             r._element.rPr.rFonts.set(qn("w:cs"), "Vazirmatn")
+    add_par(doc, "محدودیت داده و مبنای گزارش", 11, True, STEEL)
+    add_par(doc, C.DATA_NOTE, 9)
     add_par(doc, "جمع‌بندی نهایی", 11, True, STEEL)
     add_par(doc, C.CLOSING, 10)
 

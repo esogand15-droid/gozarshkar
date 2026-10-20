@@ -261,41 +261,46 @@ def note_box(c, x_right, y, text, width=CW, size=7.8, pad=7.0):
     return y - h
 
 
-def two_col_list(c, x_right, y, items, width=CW, size=7.4, gap=16.0, lh=None):
-    lh = lh or size * 1.42
-    colw = (width - gap) / 2.0
-    n = (len(items) + 1) // 2
-    rows = []
-    for i in range(n):
-        left = items[i]
-        right = items[i + n] if i + n < len(items) else ""
-        wrapped_l = wrap(left, "VR", size, colw - 13)
-        wrapped_r = wrap(right, "VR", size, colw - 13) if right else []
-        rows.append((items[i], wrapped_l, items[i + n] if i + n < len(items) else None, wrapped_r))
-    for idx, wl, _, wr in rows:
-        draw_str(c, "•", x_right - 2, y, "VB", size, GOLD)
-        yy = y
-        for k, ln in enumerate(wl):
-            draw_str(c, ln, x_right - 13, yy, "VR", size, HexColor("#22303C"))
-            yy -= lh
-        yy2 = y
-        for k, ln in enumerate(wr):
-            draw_str(c, ln, x_right - width + colw + gap - 13, yy2, "VR", size, HexColor("#22303C"))
-            yy2 -= lh
-        y -= max(len(wl), len(wr)) * lh + 2.4
-    return y
+def multi_col_list(c, x_right, y, items, ncols=2, width=CW, size=7.6, gap=16.0, lh=None):
+    """فهرست نشانه‌دار چندستونه (راست‌به‌چپ) با نشانه در ابتدای هر ستون."""
+    lh = lh or size * 1.45
+    colw = (width - gap * (ncols - 1)) / ncols
+    per_col = -(-len(items) // ncols)
+    y0 = y
+    for ci in range(ncols):
+        chunk = items[ci * per_col:(ci + 1) * per_col]
+        x_col = x_right - ci * (colw + gap)      # لبهٔ راستِ این ستون
+        yy = y0
+        for it in chunk:
+            draw_str(c, "•", x_col - 1.5, yy, "VB", size, GOLD)
+            for ln in wrap(it, "VR", size, colw - 12):
+                draw_str(c, ln, x_col - 11.0, yy, "VR", size, HexColor("#22303C"))
+                yy -= lh
+            yy -= 3.2
+    # ارتفاع بلندترین ستون
+    heights = []
+    for ci in range(ncols):
+        chunk = items[ci * per_col:(ci + 1) * per_col]
+        h = sum(len(wrap(it, "VR", size, colw - 12)) * lh + 3.2 for it in chunk)
+        heights.append(h)
+    return y0 - max(heights) + 3.2 if heights else y0
 
 
-def measure_two_col_list(items, width=CW, size=7.4, gap=16.0, lh=None):
-    lh = lh or size * 1.42
-    colw = (width - gap) / 2.0
-    n = (len(items) + 1) // 2
-    tot = 0.0
-    for i in range(n):
-        wl = len(wrap(items[i], "VR", size, colw - 13))
-        wr = len(wrap(items[i + n], "VR", size, colw - 13)) if i + n < len(items) else 0
-        tot += max(wl, wr) * lh + 2.4
-    return tot
+def status_legend(c, x_right, y, width=CW):
+    """راهنمای برچسب‌های وضعیت (همان رنگ‌های به‌کاررفته در جدول‌ها)."""
+    keys = ["A", "C", "E", "D", "B", "F"]
+    gap = 6.0
+    n = len(keys)
+    item_w = (width - gap * (n - 1)) / n
+    x = x_right
+    for k in keys:
+        label = C.STATUS_PILL[k]
+        x0 = x - item_w
+        c.setFillColor(HexColor(C.STATUS_COLOR[k]))
+        c.roundRect(x0, y - 12.6, item_w, 12.6, 2.2, stroke=0, fill=1)
+        draw_str_center(c, label, x0 + item_w / 2.0, y - 9.0, "VB", 6.9, white)
+        x -= item_w + gap
+    return y - 12.6
 
 
 def bullets(c, x_right, y, items, size=8.2, lh=12.6, width=CW, color=GOLD):
@@ -372,10 +377,10 @@ def page1(c):
     y -= 4
     y = section_title(c, PW - MX, y, "خلاصه بازدیدها و دستورهای ابلاغی دوره")
     y = table(c, PW - MX, y, C.VISITS_WIDTHS, C.VISITS_HEADER, C.VISITS,
-              size=7.3, padx=3.6, pady=2.9, leading=9.6, hdr_size=7.5,
+              size=7.4, padx=3.7, pady=3.2, leading=9.9, hdr_size=7.5,
               center_cols=(0, 1))
     y -= 7
-    y = cards(c, PW - MX, y, C.CARDS_P1, h=44.0, vsize=13.0, lsize=6.9)
+    y = cards(c, PW - MX, y, C.CARDS_P1, h=50.0, vsize=13.4, lsize=6.9)
     REPORT.append(("صفحه ۱", y))
     return y
 
@@ -384,75 +389,77 @@ def page2(c):
     y = page_frame(c, 2, title="بخش دو — مدیریت مصرف، آمار عملکرد و کنترل هزینه")
     y = section_title(c, PW - MX, y, "آمار روزانه پخت و توزیع غذا")
     y = table(c, PW - MX, y, C.STATS_WIDTHS, C.STATS_HEADER, C.STATS,
-              size=7.0, padx=3.0, pady=1.4, leading=7.6, hdr_size=7.1,
+              size=7.0, padx=3.1, pady=1.5, leading=7.8, hdr_size=7.1,
               center_cols=(0, 1, 3, 5))
     y -= 5
     y = section_title(c, PW - MX, y, "سهمیه مصرف به ازای هر نفر")
     y = table(c, PW - MX, y, C.STANDARDS_WIDTHS, C.STANDARDS_HEADER, C.STANDARDS,
-              size=7.0, padx=3.2, pady=1.7, leading=8.5, hdr_size=7.1,
+              size=7.3, padx=3.3, pady=1.9, leading=8.7, hdr_size=7.3,
               center_cols=())
     y -= 5
     y = section_title(c, PW - MX, y, "اقدامات کنترل مصرف و پیشگیری از هزینه اضافی")
     y = table(c, PW - MX, y, C.COST_WIDTHS, C.COST_HEADER, C.COST,
-              size=7.2, padx=3.4, pady=1.9, leading=8.6, hdr_size=7.2,
+              size=7.4, padx=3.5, pady=2.1, leading=9.0, hdr_size=7.4,
               center_cols=(2,))
+    y -= 8
+    y = note_box(c, PW - MX, y, C.COST_NOTE, size=7.5, pad=6.0)
     REPORT.append(("صفحه ۲", y))
     return y
 
 
 def page3(c):
-    y = page_frame(c, 3, title="بخش سه — قراردادها، تعمیرات و خلاصه وضعیت اقدامات")
-    y = section_title(c, PW - MX, y, "قرارداد خرید خدمات سپتیک و فاضلاب")
-    y = table(c, PW - MX, y, C.CONTRACT_WIDTHS, C.CONTRACT_HEADER, C.CONTRACT,
-              size=7.0, padx=3.4, pady=2.1, leading=8.5, hdr_size=7.2)
-    y -= 5
-    y = note_box(c, PW - MX, y, C.CONTRACT_NOTE, size=7.0, pad=5.5)
-    y -= 5
-    y = section_title(c, PW - MX, y, "اقدامات تعمیراتی و تجهیزاتی")
+    y = page_frame(c, 3, title="بخش سه — تعمیرات، تجهیزات و کنترل کیفیت")
+    y = section_title(c, PW - MX, y, "اقدامات تعمیراتی و تجهیزاتی انجام‌شده")
     y = table(c, PW - MX, y, C.REPAIRS_WIDTHS, C.REPAIRS_HEADER, C.REPAIRS,
-              size=7.2, padx=3.4, pady=2.2, leading=8.8, hdr_size=7.3,
+              size=7.8, padx=3.7, pady=3.3, leading=9.9, hdr_size=7.8,
               status_cols=(3,), center_cols=(0, 2))
-    y -= 5
+    y -= 6
     y = section_title(c, PW - MX, y, "موارد عدم انطباق ثبت‌شده در ارزیابی کنترل کیفیت")
     y = table(c, PW - MX, y, C.NC_WIDTHS, C.NC_HEADER, C.NC,
-              size=7.1, padx=3.2, pady=2.0, leading=8.6, hdr_size=7.2,
+              size=7.8, padx=3.5, pady=3.1, leading=9.7, hdr_size=7.8,
               status_cols=(3,), center_cols=(0, 2))
-    y -= 5
+    y -= 6
     y = section_title(c, PW - MX, y, "خلاصه وضعیت اقدامات")
     y = table(c, PW - MX, y, C.STATUS_SUMMARY_WIDTHS, C.STATUS_SUMMARY_HEADER,
-              C.STATUS_SUMMARY, size=7.2, padx=3.4, pady=2.2, leading=8.8,
-              hdr_size=7.3, status_cols=(0,), center_cols=(1,))
+              C.STATUS_SUMMARY, size=7.8, padx=3.7, pady=3.1, leading=9.7,
+              hdr_size=7.8, status_cols=(0,), center_cols=(1,))
+    y -= 6
+    y = section_title(c, PW - MX, y, "راهنمای برچسب‌های وضعیت")
+    y = status_legend(c, PW - MX, y)
+    y -= 10
+    y = section_title(c, PW - MX, y, "اقدامات انجام‌شده در دوره")
+    y = multi_col_list(c, PW - MX, y, C.ACHIEVEMENTS, ncols=3, size=7.7,
+                       gap=16.0, lh=12.4)
     REPORT.append(("صفحه ۳", y))
     return y
 
 
 def page4(c):
     y = page_frame(c, 4, title="بخش چهار — چکیده مدیریتی و جمع‌بندی نهایی عملکرد")
-    y = para(c, PW - MX, y, C.SUMMARY_TEXT, size=9.0, leading=13.9)
-    y -= 6
-    y = cards(c, PW - MX, y, C.CARDS_P4[:3], h=42.0, vsize=12.2, lsize=6.8, ncols=3)
-    y -= 4
-    y = cards(c, PW - MX, y, C.CARDS_P4[3:], h=42.0, vsize=12.2, lsize=6.8, ncols=3)
-    y -= 7
+    y = para(c, PW - MX, y, C.SUMMARY_TEXT, size=9.2, leading=14.7)
+    y -= 10
+    y = cards(c, PW - MX, y, C.CARDS_P4, h=54.0, vsize=13.0, lsize=7.0,
+              ncols=len(C.CARDS_P4))
+    y -= 12
     y = section_title(c, PW - MX, y, "دستاوردهای شاخص دوره")
-    y = bullets(c, PW - MX, y, C.ACHIEVEMENTS_SHORT, size=8.4, lh=12.3)
-    y -= 4
-    y = section_title(c, PW - MX, y, "الزامات ایمنی، بهداشت و محیط زیست ابلاغی به پیمانکار")
-    y = note_box(c, PW - MX, y, C.HSE_NOTE, size=7.8, pad=6.4)
-    y -= 6
+    y = bullets(c, PW - MX, y, C.ACHIEVEMENTS_SHORT, size=8.7, lh=13.9)
+    y -= 7
     y = section_title(c, PW - MX, y, "اولویت‌های آتی")
-    y = bullets(c, PW - MX, y, C.PRIORITIES, size=8.4, lh=12.3)
-    y -= 4
+    y = bullets(c, PW - MX, y, C.PRIORITIES, size=8.7, lh=13.9)
+    y -= 8
+    y = section_title(c, PW - MX, y, "محدودیت داده و مبنای گزارش")
+    y = note_box(c, PW - MX, y, C.DATA_NOTE, size=7.8, pad=6.8)
+    y -= 8
     y = section_title(c, PW - MX, y, "جمع‌بندی نهایی")
-    y = para(c, PW - MX, y, C.CLOSING, size=8.8, leading=13.6)
-    y -= 4
+    y = para(c, PW - MX, y, C.CLOSING, size=8.9, leading=13.8)
+    y -= 8
     y = section_title(c, PW - MX, y, "پیوست تصویری گزارش (صفحه‌های ۵ تا ۷)")
     y = appendix_index(c, PW - MX, y)
     REPORT.append(("صفحه ۴", y))
     return y
 
 
-def appendix_index(c, x_right, y, h=33.0, gap=8.0):
+def appendix_index(c, x_right, y, h=62.0, gap=8.0):
     """سه کارت فهرست پیوست: عنوان، تعداد تصویر و بازهٔ تاریخ ثبت."""
     counts = P.counts()
     ncols = len(P.CATEGORIES)
@@ -466,10 +473,10 @@ def appendix_index(c, x_right, y, h=33.0, gap=8.0):
         c.setFillColor(GOLD)
         c.rect(x0, y - h, colw, 2.2, stroke=0, fill=1)
         draw_str_center(c, "پیوست " + fa_num(idx) + " — " + C.APPENDIX_TITLES[idx],
-                        x0 + colw / 2.0, y - 11.0, "VM", 7.4, NAVY)
+                        x0 + colw / 2.0, y - 18.0, "VM", 7.7, NAVY)
         draw_str_center(c, fa_num(counts[idx]) + " تصویر  |  صفحه " + fa_num(4 + idx),
-                        x0 + colw / 2.0, y - 20.2, "VR", 6.8, STEEL)
-        draw_str_center(c, d1 + " تا " + d2, x0 + colw / 2.0, y - 27.6, "VR", 6.4, GREY)
+                        x0 + colw / 2.0, y - 34.0, "VR", 7.1, STEEL)
+        draw_str_center(c, d1 + " تا " + d2, x0 + colw / 2.0, y - 48.0, "VR", 6.7, GREY)
         cx -= colw + gap
     return y - h
 
@@ -558,11 +565,8 @@ def appendix(c, idx):
         fa_num(len(items)), d1, d2), PW - MX, y, "VB", 7.2, STEEL)
     y -= 9.0
     entries = [(first + i, it[1], it[2], it[3]) for i, it in enumerate(items)]
-    reserve = 34.0 if idx == len(P.CATEGORIES) else 0.0
-    y = photo_grid(c, PW - MX, y, entries, ncols=6, gap=5.0,
-                   reserve_bottom=reserve)
-    if reserve:
-        y = note_box(c, PW - MX, y - 2, P.APPENDIX_NOTE, size=7.0, pad=5.5)
+    # ستون‌ها متوازن می‌شوند تا ردیف آخر پر و صفحه بدون فضای خالی بماند
+    y = photo_grid(c, PW - MX, y, entries, ncols=None, gap=5.0, max_bottom=BOTTOM)
     REPORT.append(("پیوست {}".format(fa_num(idx)), y))
 
 
